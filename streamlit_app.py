@@ -226,7 +226,7 @@ contact_housing = (selected_housing)**(0.2) + (selected_campaign)**(0.35) + sele
 
 
 pickle_in = open("Bank_Marketing_with_ML.ipynb","rb")
-classifier = pkl.load(pickle_in)
+classifier = ipynb.load(pickle_in)
 
 
 prediction = classifier.predict([[selected_age, selected_marital, 
