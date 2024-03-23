@@ -1,5 +1,4 @@
 import streamlit as st
-from Bank_Marketing_with_ML import predict_proba
 
 st.title('Bank Marketing Analysis and Modeling')
 
