@@ -5,7 +5,7 @@ import pickle as pkl
 import os
 
 
-df = pd.read_csv("data/bank-full.csv")
+df = pd.read_csv("bank-full.csv")
 
 st.title('Deposit Prediction for Bank Marketing Campaign')
 
