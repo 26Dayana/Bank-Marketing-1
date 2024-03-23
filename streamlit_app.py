@@ -225,7 +225,7 @@ dur_pdays = ((selected_duration + selected_previous**0.15 -
 contact_housing = (selected_housing)**(0.2) + (selected_campaign)**(0.35) + selected_contact**(0.2)
 
 
-pickle_in = open("model/model.pkl","rb")
+pickle_in = open("Bank_Marketing_with_ML.ipynb","rb")
 classifier = pkl.load(pickle_in)
 
 
