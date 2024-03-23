@@ -224,9 +224,10 @@ dur_pdays = ((selected_duration + selected_previous**0.15 -
 
 contact_housing = (selected_housing)**(0.2) + (selected_campaign)**(0.35) + selected_contact**(0.2)
 
+import pickle
 
-pickle_in = open("Bank_Marketing_with_ML.ipynb","rb")
-classifier = ipynb.load(pickle_in)
+pickle_in = open("Bank_Marketing_with_ML.ipynb", "rb")
+classifier = pickle.load(pickle_in)
 
 
 prediction = classifier.predict([[selected_age, selected_marital, 
