@@ -1,25 +1,116 @@
+# Libraries
 import streamlit as st
+import numpy as np
+import joblib
+import time
+from datetime import datetime
+from typing import Iterable
+import pickle
+import pandas as pd
+from xgboost.sklearn import XGBClassifier
 
-# Create a title and header
-st.title("Bank Marketing Analysis and Modeling")
-st.header("Exploratory Data Analysis")
+# Main function
+def main():
 
-# Create a section for data
-st.subheader("Data")
-data_section = st.beta_expander("See Sample Data", expanded=False)
-with data_section:
-    # Replace with your data loading logic here
-    st.write("Sample Data Here")  # Placeholder, replace with actual data
+    # SIDEBAR CONTENT
+    st.sidebar.title("Bank Customer Term Deposit Predictor")
+    st.sidebar.write(
+        """
+        The ability to accurately predict customer tendencies in subscribing to a term deposit holds immense significance for banks. 
+    \nBy leveraging machine learning techniques, banks can gain valuable insights into customer behavior and preferences, enabling them to make informed decisions regarding their marketing strategies and product offerings. 
+    \nThis predictive capability allows banks to optimize their resources, tailor their communication efforts, and effectively allocate their marketing budgets, ultimately leading to improved customer acquisition, retention, and profitability. 
+    \nFurthermore, by identifying potential customers who are more likely to subscribe to a term deposit, banks can enhance their overall risk management and optimize their loan portfolios, thereby strengthening their financial stability and resilience.
+        """
+    )
 
-# Create a section for Model Selection
-st.subheader("Model Selection")
-model_list = ["Decision Tree Classifier", "Logistic Regression", "Gradient Boosting"]
-selected_model = st.selectbox("Select Model", model_list)
+    # Social Hubs
+    st.sidebar.markdown(
 
-# Create a section for prediction
-st.subheader("Predict")
-# Add your prediction logic here based on the selected model
+    """
+    <div stlye="{}">
+        <h3> Follow My Social Hubs For More Content </h3>
+        <ul>
+            <li><a href="https://medium.com/@bauglir">Medium</a></li>
+            <li><a href="https://www.kaggle.com/dfavenfre">Kaggle</a></li>
+            <li><a href="https://github.com/dfavenfre">GitHub</a></li>
+            <li><a href="https://www.linkedin.com/in/tolga-%C5%9Fakar-575b86136">LinkedIn</a></li>
+         </ul>  
+    
+    """, unsafe_allow_html=True
 
-# Create a section for model evaluation
-st.subheader("Model Evaluation")
-# Add your model evaluation metrics here, like accuracy, precision, recall, F1 score
+    )
+    # MAIN PAGE CONTENT
+    st.title("Predict Customer Tendency")
+    ## Model
+    try:
+        # Load the model
+        with open(r"Model/xgbclassifier.pkl", "rb") as f:
+            xgbclassifier = pickle.load(f)
+        if xgbclassifier is not None:
+            load_message = st.empty()
+            load_message.text("Model Loaded Successfully")
+            time.sleep(1)
+            load_message.empty()
+
+    ## Raise exception if model not found
+    except FileNotFoundError:
+        load_message = st.empty()
+        load_message.text("Model Not Found, Please Control The Path")
+        time.sleep(1)
+        load_message.empty()
+
+    # MODEL CONTENT
+    ## Job Feature
+    occupation_values ={"Administrative": 0,"Blue-collar": 1,"Entrepreneur": 2,"Housemaid": 3,
+                        "Management": 4,"Retired": 5,"Self-employed": 6,"Services": 7,
+                        "Student": 8,"Technician": 9,"Unemployed": 10}
+    
+    select_job = st.selectbox("Type of job", list(occupation_values.keys()))
+    if select_job:        
+        selected_job = occupation_values[select_job]
+
+    ## Day of Week
+    day_values = {"Monday":0,"Tuesday":1,"Wednesday":2,"Thursday":3,"Friday":4,"Saturday":5,"Sunday":6,}
+    select_day = st.selectbox("Last contact day of the week", list(day_values.keys()))
+    if select_day:
+        selected_day = day_values[select_day]
+
+    ## Campaign
+    campaign = st.number_input('Number of contacts performed during this campaign and for this client')
+
+    ## poutcome
+    list_outcome = {"failure":0, "non-existed":1,"success":2}
+    p_outcome = st.selectbox("Outcome of the previous marketing campaign", list(list_outcome.keys()))
+    if p_outcome:
+         selected_poutcome = list_outcome[p_outcome]
+
+    ## cons.price.idx
+    cpi = st.number_input("Consumer price index - monthly indicator")
+
+    ## euribor3m
+    euribor = st.number_input("Euribor 3 month rate - daily indicator")
+
+    # Prediction
+    prediction_button = st.button(label="Predict")
+    X_list = [selected_job, selected_day, campaign, selected_poutcome, cpi, euribor]
+    X_array = np.array(X_list).reshape(1, -1)
+    pred_df = pd.DataFrame(X_array, columns=['job', 'day_of_week', 'campaign', 'poutcome', 'cons.price.idx', 'euribor3m'])
+    
+    # Get Prediction Results
+    if prediction_button:
+        pred = xgbclassifier.predict(pred_df)
+        pred_proba = xgbclassifier.predict_proba(pred_df)
+        max_proba = np.max(pred_proba[0]) * 100
+        # Prints Prediction, Confidence, and Prediction Summary
+        if pred[0] == 0 :
+             st.write(f"Prediction Outcome: {pred[0]}")
+             st.write(f"Confidence: {max_proba:.2f}%")
+             st.write("Summary:", "\nThe customer is less likely to subscribe to a term deposit")
+             
+        else:
+             st.write(f"Prediction Outcome: {pred[0]}")
+             st.write(f"Confidence: {max_proba:.2f}%")
+             st.write("Summary:", "\nThe customer is more likely to subscribe to a term deposit")
+
+if __name__ == '__main__':
+	main()
